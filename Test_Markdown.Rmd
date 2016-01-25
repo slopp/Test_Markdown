@@ -1,0 +1,15 @@
+---
+output: html_document
+params:
+     func: !r makePlot
+     arg:  !r bin_num
+---
+
+
+## My Plot
+
+This plot was knitted from a Shiny App where the number of bins was set to `r bin_num`:
+
+```{r echo=FALSE}
+makePlot(bin_num)
+```
