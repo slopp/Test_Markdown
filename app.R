@@ -20,7 +20,7 @@ ui <- shinyUI(fluidPage(
       # Show a plot of the generated distribution
       mainPanel(
          plotOutput("distPlot"),
-         actionButton("knitme", "Knit Me!")
+         downloadButton("report", "Download report")
       )
    )
 ))
@@ -29,9 +29,9 @@ ui <- shinyUI(fluidPage(
 server <- shinyServer(function(input, output) {
   
   # the function we will pass into the R Markdown Report
-  makePlot <- function(bins){
+  makePlot <- function(){
     x    <- faithful[, 2] 
-    bins <- seq(min(x), max(x), length.out = bins + 1)
+    bins <- seq(min(x), max(x), length.out = input$bins + 1)
     
     # draw the histogram with the specified number of bins
     hist(x, breaks = bins, col = 'darkgray', border = 'white')
@@ -39,13 +39,19 @@ server <- shinyServer(function(input, output) {
   
   
   output$distPlot <- renderPlot({
-      makePlot(input$bins)  
+      makePlot() 
    })
    
-  observeEvent(input$knitme, {
-      bin_num <-input$bins 
-      rmarkdown::render("Test_Markdown.Rmd", params=list(func=makePlot, arg=bin_num))
-   })
+  output$report <- downloadHandler(
+    filename = "report.pdf",
+    content = function(filename) {
+      rmarkdown::render("Test_Markdown.Rmd",
+        rmarkdown::pdf_document(),
+        filename,
+        params=list(plotFunc=makePlot, inputs=reactiveValuesToList(input))
+      )
+    }
+  )
 })
 
 # Run the application 
